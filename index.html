@@ -1,0 +1,868 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Slap Summit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Rubik:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FFD23F; --ink:#1B1A33; --card:#FFF6D6; --pop:#E8294C; --ok:#12A594; --warn:#F59E0B; --lock:#B9B39A;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){ --bg:#2A2150; --ink:#FFF1C9; --card:#3A2F6B; --pop:#FF4D6D; --ok:#2DD4BF; --warn:#FBBF24; --lock:#6B5FA3; }
+}
+:root[data-theme="dark"]{ --bg:#2A2150; --ink:#FFF1C9; --card:#3A2F6B; --pop:#FF4D6D; --ok:#2DD4BF; --warn:#FBBF24; --lock:#6B5FA3; }
+html{ scroll-padding-top:env(safe-area-inset-top,0px); height:100%; }
+html,body{ margin:0; background:var(--bg); color:var(--ink); }
+body{ height:100%; font-family:"Rubik",system-ui,-apple-system,"Segoe UI",sans-serif; -webkit-tap-highlight-color:transparent; user-select:none; -webkit-user-select:none; touch-action:manipulation; overflow-x:hidden; }
+[hidden]{ display:none!important; }
+button,a.btn{ font:inherit; color:inherit; cursor:pointer; text-decoration:none; }
+button:focus-visible,a:focus-visible,input:focus-visible{ outline:3px solid var(--pop); outline-offset:2px; }
+.disp{ font-family:"Bangers","Impact","Arial Black",sans-serif; font-weight:400; letter-spacing:1.5px; }
+
+/* ---------- shared ---------- */
+.btn{ display:inline-block; border:3px solid var(--ink); background:var(--card); border-radius:12px; padding:7px 14px; font-weight:800; box-shadow:3px 3px 0 var(--ink); }
+.btn:active{ transform:translate(2px,2px); box-shadow:1px 1px 0 var(--ink); }
+.btn.hot{ background:var(--pop); color:#fff; }
+.chip{ border:3px solid var(--ink); border-radius:999px; padding:5px 14px; background:var(--card); font-weight:800; font-size:14px; }
+button.chip{ box-shadow:3px 3px 0 var(--ink); }
+button.chip:active{ transform:translate(2px,2px); box-shadow:1px 1px 0 var(--ink); }
+
+/* ---------- select screen ---------- */
+#select{ max-width:760px; margin:0 auto; padding:18px 16px 28px; }
+.hero{ text-align:center; padding:8px 0 4px; }
+.logo{ font-family:"Bangers","Impact","Arial Black",sans-serif; font-weight:400; font-size:clamp(54px,17vw,92px); line-height:.9; letter-spacing:2px; margin:6px 0 0; transform:rotate(-3deg); text-shadow:4px 4px 0 var(--pop); }
+.sub{ font-weight:600; margin:14px auto 0; max-width:32ch; font-size:16px; }
+.row{ display:flex; gap:10px; justify-content:center; margin:12px 0; flex-wrap:wrap; align-items:center; }
+.modes{ display:flex; justify-content:center; margin:14px 0 4px; }
+.modes button{ border:3px solid var(--ink); background:var(--card); padding:9px 14px; font-weight:800; font-size:16px; }
+.modes button+button{ border-left:0; }
+.modes button:first-child{ border-radius:14px 0 0 14px; }
+.modes button:last-child{ border-radius:0 14px 14px 0; }
+.modes button[aria-pressed="true"]{ background:var(--pop); color:#fff; }
+.modehelp{ text-align:center; font-size:14px; font-weight:600; margin:6px auto 12px; max-width:36ch; min-height:2.4em; }
+.wlabel{ text-align:center; font-weight:800; font-size:13px; margin:8px 0 2px; }
+.wrow{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
+.wbtn{ position:relative; width:52px; height:52px; border:3px solid var(--ink); border-radius:14px; background:var(--card); font-size:28px; line-height:1; padding:0; box-shadow:3px 3px 0 var(--ink); }
+.wbtn[aria-pressed="true"]{ background:var(--warn); transform:translate(1px,1px); box-shadow:2px 2px 0 var(--ink); }
+.wbtn.locked{ background:var(--lock); filter:grayscale(.8); font-size:20px; }
+.wbtn.locked small{ position:absolute; bottom:-1px; left:0; right:0; font-size:10px; font-weight:800; }
+.grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(148px,1fr)); gap:14px; margin-top:16px; }
+.card{ position:relative; text-align:left; padding:0 0 10px; background:var(--card); border:3px solid var(--ink); border-radius:18px 18px 22px 12px; box-shadow:5px 5px 0 var(--ink); overflow:hidden; transition:transform .12s, box-shadow .12s; }
+.card:nth-child(even){ border-radius:12px 22px 18px 18px; }
+.card:active{ transform:translate(4px,4px); box-shadow:1px 1px 0 var(--ink); }
+.thumb{ aspect-ratio:1/1; border-bottom:3px solid var(--ink); overflow:hidden; }
+.thumb svg{ width:100%; height:100%; display:block; }
+.nm{ font-weight:800; font-size:15px; padding:8px 10px 0; line-height:1.15; }
+.tt{ font-size:12px; padding:2px 10px 0; opacity:.8; line-height:1.25; }
+.badge{ position:absolute; top:8px; right:8px; background:var(--pop); color:#fff; font-family:"Bangers","Impact",sans-serif; letter-spacing:1px; font-size:16px; padding:2px 10px; border:3px solid var(--ink); border-radius:8px; transform:rotate(8deg); }
+.badge.daily{ left:8px; right:auto; background:var(--warn); color:#1B1A33; transform:rotate(-7deg); }
+.fine{ text-align:center; font-size:12px; opacity:.75; margin:22px auto 0; max-width:42ch; }
+
+/* ---------- play screen ---------- */
+#play{ height:100%; max-width:640px; margin:0 auto; display:flex; flex-direction:column; }
+.bar{ display:flex; align-items:center; gap:10px; padding:10px 14px 4px; }
+.who{ flex:1; min-width:0; line-height:1.15; text-align:center; }
+.who b{ display:block; font-family:"Bangers","Impact",sans-serif; font-size:24px; letter-spacing:1px; font-weight:400; }
+.who span{ display:block; font-size:12px; opacity:.8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.meter{ display:flex; align-items:center; gap:10px; padding:6px 16px 0; font-weight:800; font-size:13px; }
+.track{ flex:1; height:20px; border:3px solid var(--ink); border-radius:999px; background:var(--card); overflow:hidden; }
+#fill{ display:block; height:100%; width:100%; background:var(--ok); transition:width .15s, background .2s; }
+#timer{ font-family:"Bangers","Impact",sans-serif; font-size:26px; letter-spacing:1px; min-width:64px; text-align:right; }
+#timer.low{ color:var(--pop); }
+#stage{ position:relative; flex:1; min-height:0; overflow:hidden; touch-action:none; display:flex; align-items:flex-end; justify-content:center; cursor:crosshair; }
+#stage.shake{ animation:shake .28s; }
+@keyframes shake{ 0%,100%{transform:none} 20%{transform:translate(-7px,4px)} 40%{transform:translate(6px,-5px)} 60%{transform:translate(-5px,-3px)} 80%{transform:translate(4px,3px)} }
+.facebox{ width:min(84vw,46vh,360px); margin-bottom:2vh; transform-origin:50% 90%; }
+.facebox svg{ width:100%; height:auto; display:block; overflow:visible; }
+.facebox.hl{ animation:flingR .34s ease-out; }
+.facebox.hr{ animation:flingL .34s ease-out; }
+.facebox.ko1{ animation:ko1 1s ease-in forwards; }
+.facebox.ko2{ animation:ko2 .95s ease-in forwards; }
+.facebox.ko3{ animation:ko3 .9s ease-in forwards; }
+.facebox.ko4{ animation:ko4 .95s ease-in forwards; }
+@keyframes flingR{ 0%{transform:none} 30%{transform:translateX(38px) rotate(13deg) scale(.96,1.04)} 65%{transform:translateX(-8px) rotate(-4deg)} 100%{transform:none} }
+@keyframes flingL{ 0%{transform:none} 30%{transform:translateX(-38px) rotate(-13deg) scale(.96,1.04)} 65%{transform:translateX(8px) rotate(4deg)} 100%{transform:none} }
+@keyframes ko1{ 0%{transform:none} 35%{transform:rotate(-14deg) translateY(-18px)} 100%{transform:rotate(70deg) translate(30px,120vh)} }
+@keyframes ko2{ 0%{transform:none} 18%{transform:scale(1.12,.86)} 100%{transform:translate(110vw,-90vh) rotate(1440deg) scale(.1)} }
+@keyframes ko3{ 0%{transform:none} 35%{transform:scale(1.35,.14)} 70%{transform:scale(1.35,.14)} 100%{transform:scale(1.8,0);opacity:0} }
+@keyframes ko4{ 0%{transform:none} 100%{transform:rotate(1080deg) scale(0)} }
+.face .e-h,.face .m-h{ display:none; }
+.face.hit .e-h,.face.hit .m-h{ display:inline; }
+.face.hit .e-n,.face.hit .m-n{ display:none; }
+.hand{ position:absolute; font-size:104px; line-height:1; pointer-events:none; opacity:0; z-index:5; }
+.hand.l{ animation:handL .26s ease-out; }
+.hand.r{ animation:handR .26s ease-out; }
+@keyframes handL{ 0%{opacity:0;transform:translate(-210px,-50px) rotate(-75deg)} 25%{opacity:1} 45%{opacity:1;transform:translate(0,0) rotate(8deg) scale(1.2)} 100%{opacity:0;transform:translate(16px,2px) rotate(14deg) scale(1)} }
+@keyframes handR{ 0%{opacity:0;transform:translate(210px,-50px) rotate(75deg) scaleX(-1)} 25%{opacity:1} 45%{opacity:1;transform:translate(0,0) rotate(-8deg) scale(1.2) scaleX(-1)} 100%{opacity:0;transform:translate(-16px,2px) rotate(-14deg) scale(1) scaleX(-1)} }
+.pop{ position:absolute; z-index:6; pointer-events:none; font-family:"Bangers","Impact",sans-serif; font-size:42px; letter-spacing:2px; color:var(--c,#fff); -webkit-text-stroke:2px #1B1A33; text-shadow:3px 3px 0 #1B1A33; animation:rise .7s ease-out forwards; white-space:nowrap; }
+.pop.crit{ font-size:58px; --c:#FFD23F; }
+@keyframes rise{ 0%{opacity:0;transform:translate(-50%,0) rotate(var(--r)) scale(.5)} 20%{opacity:1;transform:translate(-50%,-14px) rotate(var(--r)) scale(1.2)} 100%{opacity:0;transform:translate(-50%,-80px) rotate(var(--r)) scale(1)} }
+.conf{ position:absolute; z-index:7; pointer-events:none; left:50%; top:60%; font-size:30px; animation:conf 1s ease-out forwards; }
+@keyframes conf{ 0%{opacity:1;transform:translate(-50%,-50%) scale(.4)} 100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) rotate(var(--rot)) scale(1.2)} }
+.stamp{ position:absolute; z-index:9; left:50%; top:46%; pointer-events:none; font-family:"Bangers","Impact",sans-serif; font-size:clamp(40px,13vw,72px); letter-spacing:2px; color:#fff; background:var(--pop); border:5px solid #1B1A33; border-radius:14px; padding:2px 18px; box-shadow:6px 6px 0 #1B1A33; white-space:nowrap; animation:stamp 1.7s ease-out forwards; }
+.lock{ position:absolute; z-index:9; left:50%; top:40%; transform:translate(-50%,-50%) rotate(-4deg); text-align:center; pointer-events:none; font-family:"Bangers","Impact",sans-serif; font-size:clamp(34px,10vw,56px); letter-spacing:2px; line-height:1.05; color:#fff; background:var(--pop); border:5px solid #1B1A33; border-radius:14px; padding:6px 20px; box-shadow:6px 6px 0 #1B1A33; white-space:nowrap; }
+.lock small{ display:block; font-size:.62em; color:#FFD23F; }
+@keyframes stamp{ 0%{opacity:0;transform:translate(-50%,-50%) rotate(-12deg) scale(3)} 14%{opacity:1;transform:translate(-50%,-50%) rotate(-8deg) scale(1)} 80%{opacity:1;transform:translate(-50%,-50%) rotate(-8deg) scale(1)} 100%{opacity:0;transform:translate(-50%,-50%) rotate(-8deg) scale(.9)} }
+#bubble{ position:absolute; top:10px; left:50%; transform:translateX(-50%); width:min(88%,420px); box-sizing:border-box; text-align:center; font-weight:800; font-size:17px; line-height:1.25; padding:12px 16px; background:var(--card); border:3px solid var(--ink); border-radius:20px; box-shadow:4px 4px 0 var(--ink); z-index:4; pointer-events:none; }
+#bubble::after{ content:""; position:absolute; left:50%; bottom:-14px; width:20px; height:20px; background:var(--card); border:3px solid var(--ink); border-top:0; border-left:0; transform:translateX(-50%) rotate(45deg); }
+#bubble.say{ animation:bub .22s ease-out; }
+@keyframes bub{ 0%{transform:translateX(-50%) scale(.85)} 100%{transform:translateX(-50%) scale(1)} }
+.wrow.play{ padding:8px 10px 8px; gap:6px; flex-wrap:nowrap; overflow-x:auto; justify-content:flex-start; scrollbar-width:none; }
+.wrow.play::-webkit-scrollbar{ display:none; }
+.wbtn{ flex-shrink:0; }
+.wrow.play .wbtn{ width:46px; height:46px; font-size:24px; border-radius:12px; }
+.hud{ display:flex; align-items:center; justify-content:space-between; gap:8px; padding:8px 16px 14px; font-weight:600; font-size:14px; }
+.hud b{ font-family:"Bangers","Impact",sans-serif; font-weight:400; font-size:26px; letter-spacing:1px; margin-left:4px; }
+#combo{ font-family:"Bangers","Impact",sans-serif; font-size:30px; letter-spacing:1px; color:var(--pop); min-width:90px; text-align:center; }
+.kocard{ position:absolute; z-index:10; left:50%; top:50%; transform:translate(-50%,-50%); width:min(88%,380px); box-sizing:border-box; background:var(--card); border:4px solid var(--ink); border-radius:22px; box-shadow:7px 7px 0 var(--ink); padding:18px 18px 16px; text-align:center; cursor:default; animation:bub2 .3s ease-out; }
+@keyframes bub2{ 0%{transform:translate(-50%,-50%) scale(.7);opacity:0} 100%{transform:translate(-50%,-50%) scale(1);opacity:1} }
+.kocard h2{ font-family:"Bangers","Impact",sans-serif; font-weight:400; font-size:60px; line-height:1; margin:0; letter-spacing:3px; color:var(--pop); text-shadow:3px 3px 0 var(--ink); }
+.kocard p{ margin:8px 0 14px; font-weight:600; }
+.kocard .stats{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin:0 0 12px; }
+.kocard .row{ margin:6px 0 0; }
+
+/* ---------- sheets, modal, toast ---------- */
+.overlay{ position:fixed; inset:0; z-index:50; background:rgba(10,8,30,.62); display:flex; align-items:center; justify-content:center; padding:16px; box-sizing:border-box; }
+.sheet{ width:min(100%,460px); max-height:86vh; overflow:auto; background:var(--card); border:4px solid var(--ink); border-radius:22px; box-shadow:7px 7px 0 var(--ink); padding:18px; box-sizing:border-box; }
+.sheet h2{ font-family:"Bangers","Impact",sans-serif; font-weight:400; font-size:40px; letter-spacing:2px; margin:0 0 8px; }
+.sheet p{ margin:6px 0 12px; font-weight:600; font-size:14px; }
+.tabs{ display:flex; gap:8px; margin-bottom:10px; }
+.tabs button{ flex:1; border:3px solid var(--ink); background:var(--card); border-radius:10px; padding:6px; font-weight:800; }
+.tabs button[aria-pressed="true"]{ background:var(--pop); color:#fff; }
+.lb{ list-style:none; margin:0 0 12px; padding:0; }
+.lb li{ display:flex; gap:10px; align-items:center; padding:7px 10px; border:3px solid var(--ink); border-radius:12px; margin-bottom:6px; background:var(--bg); font-weight:800; }
+.lb li.me{ background:var(--warn); color:#1B1A33; }
+.lb .rk{ font-family:"Bangers","Impact",sans-serif; font-size:24px; min-width:34px; }
+.lb .nk{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.lb .sc{ font-family:"Bangers","Impact",sans-serif; font-size:24px; }
+.lb .ex{ font-size:11px; opacity:.75; display:block; font-weight:600; }
+.empty{ text-align:center; opacity:.8; padding:14px 0; font-weight:600; }
+.tro{ list-style:none; margin:0 0 12px; padding:0; }
+.tro li{ display:flex; gap:10px; align-items:center; padding:8px 10px; border:3px solid var(--ink); border-radius:12px; margin-bottom:6px; font-weight:600; font-size:14px; }
+.tro li.got{ background:var(--warn); color:#1B1A33; }
+.tro li.no{ opacity:.65; }
+.tro .ic{ font-size:26px; }
+.tro b{ display:block; font-weight:800; }
+.nickin{ width:100%; box-sizing:border-box; font:inherit; font-weight:800; font-size:20px; padding:10px 14px; border:3px solid var(--ink); border-radius:12px; background:#fff; color:#1B1A33; margin:6px 0 12px; text-align:center; user-select:text; -webkit-user-select:text; }
+#toast{ position:fixed; z-index:80; left:50%; bottom:calc(22px + env(safe-area-inset-bottom,0px)); transform:translateX(-50%); max-width:90vw; background:var(--ink); color:var(--bg); border-radius:14px; padding:10px 18px; font-weight:800; text-align:center; animation:toast 2.6s ease-out forwards; }
+@keyframes toast{ 0%{opacity:0;transform:translate(-50%,20px)} 10%{opacity:1;transform:translate(-50%,0)} 88%{opacity:1} 100%{opacity:0} }
+@media (prefers-reduced-motion:reduce){
+  .facebox,.hand,.pop,.conf,.stamp,#bubble.say,.kocard,#stage.shake,#toast{ animation-duration:.01ms!important; }
+}
+</style>
+</head>
+<body>
+
+<main id="select">
+  <div class="hero">
+    <h1 class="logo">SLAP SUMMIT</h1>
+    <p class="sub">Fifteen totally fictional dignitaries. Zero dignity remaining.</p>
+  </div>
+  <div class="row">
+    <button class="chip" id="nickChip" aria-label="Change nickname"></button>
+    <span class="chip">Slaps: <span id="sTot">0</span></span>
+    <span class="chip">Humbled: <span id="sKo">0</span>/15</span>
+  </div>
+  <div class="row">
+    <button class="btn" id="openBoard">Leaderboard</button>
+    <button class="btn" id="openTro">Trophies <span id="troCount"></span></button>
+  </div>
+  <div class="modes" role="group" aria-label="Game mode">
+    <button id="mClassic" aria-pressed="true">Classic</button>
+    <button id="mRush" aria-pressed="false">Rush 45s</button>
+    <button id="mEndless" aria-pressed="false">Endless</button>
+  </div>
+  <p class="modehelp" id="modeHelp"></p>
+  <div class="wlabel">Pick your weapon</div>
+  <div class="wrow" id="wSelect"></div>
+  <div class="grid" id="grid"></div>
+  <p class="fine">Pure parody. Every character is an invented cartoon and any resemblance is a coincidence we are very proud of. No actual people were slapped.</p>
+</main>
+
+<section id="play" hidden>
+  <header class="bar">
+    <button class="btn" id="back" aria-label="Back to character select">Back</button>
+    <div class="who"><b id="pname"></b><span id="ptitle"></span></div>
+    <button class="btn" id="finish" hidden>Finish</button>
+    <button class="btn" id="mute" aria-label="Toggle sound">🔊</button>
+  </header>
+  <div class="meter"><span>Dignity</span><div class="track"><i id="fill"></i></div><span id="timer" hidden>45.0</span></div>
+  <div id="stage">
+    <div id="bubble"></div>
+    <div id="fb" class="facebox"></div>
+    <div id="hand" class="hand">✋</div>
+    <div id="card" class="kocard" hidden></div>
+  </div>
+  <div class="wrow play" id="wPlay"></div>
+  <footer class="hud">
+    <div>Score<b id="sc">0</b></div>
+    <div id="combo"></div>
+    <div>Total<b id="tot">0</b></div>
+  </footer>
+</section>
+
+<div id="sheetHost"></div>
+<div id="toastHost"></div>
+
+<script>
+/* ---------- characters (all fictional parodies) ---------- */
+const C=[
+ {id:'husk',name:"Elan Husk",title:"Rocket Tycoon",bg:"#8ECAE6",skin:"#F1C6A4",hair:"short",hairCol:"#3B2A20",suit:"#23232B",tie:"#D62839",
+  items:[["🚀",172,268,34,20],["🪐",34,64,34,-15]],
+  intro:"Owns a rocket and a mood swing.",
+  hits:["Ow! I'll buy the slap and shut it down.","My rocket felt that.","Posting about this. On my own app.","Mars has better cheeks than this."],
+  ko:"I'm moving to Mars. The slap is not invited."},
+ {id:'oranj',name:"President Oranj",title:"Golf Cart Commander",bg:"#B7E4C7",skin:"#F7A24B",hair:"swoop",hairCol:"#F6D365",suit:"#1D3557",tie:"#E63946",longTie:true,
+  items:[["⛳",36,262,38,0],["🍔",190,270,34,10]],
+  intro:"Believes he invented golf and the word 'big'.",
+  hits:["Tremendous slap! Many people are saying so!","Nobody gets slapped like I get slapped!","Fake slap! Sad!","Best cheek in history, believe me."],
+  ko:"I won the slap. Biggest slap win ever."},
+ {id:'bear',name:"Vladik Bearov",title:"Shirtless Judo Bear",bg:"#CDB4DB",skin:"#F3CBB0",hair:"short",hairCol:"#CFC5B0",suit:null,ears:"bear",belt:true,
+  items:[["🥋",182,262,36,10],["🐻",204,60,30,15]],
+  intro:"Judo champion of a bear cult. Allergic to shirts.",
+  hits:["Bear does not feel pain. Bear feels mild inconvenience.","I wrestle bears. You are small bear.","Ow. Is judo, yes?","This hurts my feelings and my belt."],
+  ko:"Taking a very serious nap. Not a defeat."},
+ {id:'kimchi',name:"Supreme Leader Kimchi",title:"Haircut Of The Nation",bg:"#FFC8DD",skin:"#F1D3B3",hair:"bowl",hairCol:"#16161A",suit:"#3A4A3A",tie:null,glasses:"round",
+  items:[["🍜",178,268,36,0],["✂️",36,66,30,-20]],
+  intro:"Declares a national holiday whenever he is sad.",
+  hits:["My haircut is a national secret!","Slap me again and I declare it a holiday.","Ouch! Please clap. Wait, don't.","I was winning this at bowling."],
+  ko:"I declare this a victory parade. Parade is in my bedroom."},
+ {id:'zuck',name:"Mark Zuckerbot",title:"Definitely A Human Man",bg:"#CAF0F8",skin:"#B7C7D1",hair:"short",hairCol:"#5A4630",suit:"#7C8794",tie:null,pupil:"#FF2D2D",
+  items:[["🦎",178,268,34,0],["📡",120,30,32,0]],
+  intro:"100% human. Water is delicious.",
+  hits:["Slap registered. Initiating human reaction.","Error 404: feelings not found.","I am a real boy. Please do not check.","Hold on, rebooting smile."],
+  ko:"Rebooting... please do not slap during restart."},
+ {id:'bezoz',name:"Jeff Bezoz",title:"Next-Day Everything",bg:"#FFE8A3",skin:"#EDB894",hair:"bald",hairCol:"#EDB894",suit:"#1D3557",tie:"#F4A261",
+  items:[["📦",174,268,38,0],["✈️",204,52,30,20]],
+  intro:"Delivers anything, including regret.",
+  hits:["Return this slap! Free shipping!","Next-day pain, delivered.","I rate this slap five stars.","My cheeks arrive between 2 and 4 pm."],
+  ko:"Package delivered. To the floor."},
+ {id:'gaitz',name:"Bill Gaitz",title:"Blue Screen Baron",bg:"#A9D6FF",skin:"#F3CDB1",hair:"side",hairCol:"#8B6B3D",suit:"#4C6EF5",tie:null,glasses:"square",
+  items:[["💾",176,268,34,10],["🪟",36,66,32,-10]],
+  intro:"Has a software update for your feelings.",
+  hits:["Windows has encountered a slap.","Ctrl+Alt+Ouch.","Please wait. Updating pain, 1 of 847.","That slap needs a restart."],
+  ko:"Blue screen of face."},
+ {id:'macaroon',name:"Emmanuel Macaroon",title:"Baguette Defense Minister",bg:"#FFD6A5",skin:"#F4CDB0",hair:"short",hairCol:"#5C4A38",suit:"#22314F",tie:"#E63946",hat:"beret",
+  items:[["🥖",34,266,44,-30],["🥐",192,264,34,10]],
+  intro:"Fights every strike with a baguette.",
+  hits:["Mon Dieu! My croissant!","Zis is not a slap, zis is art!","Baguette defense activated!","Non, non, non! I strike back in 3, 2, 1..."],
+  ko:"I resign! And go on strike for lunch."},
+ {id:'trudough',name:"Justin Trudough",title:"Sorry Maple Syrup Man",bg:"#FFB5A7",skin:"#F2C7A5",hair:"mop",hairCol:"#4A3426",suit:"#2B2D42",tie:"#D62839",
+  items:[["🍁",176,268,36,0],["🦫",36,266,34,0]],
+  intro:"Apologizes to doors. Also to slaps.",
+  hits:["Sorry! Sorry for being slapped!","Oh, sorry, my cheek got in the way.","Eh? That was a bit rude, eh.","I apologize to my own face."],
+  ko:"Sorry for falling over, eh."},
+ {id:'bojo',name:"Bojo The Mop",title:"Hair Hazard To Aircraft",bg:"#E9EDC9",skin:"#F5C8B0",hair:"mop",hairCol:"#F3E27A",suit:"#38405F",tie:"#6A994E",
+  items:[["🚌",36,268,34,0],["☂️",188,266,34,10]],
+  intro:"His hair has its own press office.",
+  hits:["Gosh! Splendid! My hair has opinions!","Crikey, a surprise slap, what a hoot!","Oh, that is a bit rich, old bean.","Hair intact. Dignity: unknown."],
+  ko:"I will now deliver a very long speech from the floor."},
+ {id:'joe',name:"Uncle Joe Scoops",title:"Ice Cream Is Policy",bg:"#BDE0FE",skin:"#F3C9AE",hair:"wild",hairCol:"#F2F2F2",suit:"#2A4365",tie:"#2D6A9F",glasses:"aviator",
+  items:[["🍦",176,258,46,10],["🏖️",36,66,30,-10]],
+  intro:"Ice cream is his entire foreign policy.",
+  hits:["Come on, man! That was my ice cream cheek!","Not a bad slap, pal. Not a bad slap.","Where was I? Oh yeah. Ow.","Folks, that's no joke. Actually it is."],
+  ko:"Just resting my eyes for a century."},
+ {id:'olaf',name:"Olaf Schnitzel",title:"Chancellor Of Naps",bg:"#D8E2DC",skin:"#EBC2A4",hair:"side",hairCol:"#C9C9C9",suit:"#33343B",tie:"#3A86FF",sleepy:true,
+  items:[["💤",192,58,34,0],["🥨",36,268,34,-10]],
+  intro:"Reaction time: three business quarters.",
+  hits:["Mmm? Did something happen?","Zzz... was ist das?","I will think about this slap for three years.","Slap received. Committee formed."],
+  ko:"Finally. A reason to nap."},
+ {id:'javier',name:"Javier Chainsaw",title:"Budget Lumberjack",bg:"#F4A261",skin:"#EFC09C",hair:"mop",hairCol:"#2B2118",burns:true,suit:"#22222A",tie:null,
+  items:[["🪚",32,262,46,-25],["🦁",206,60,30,10]],
+  intro:"Fixes every problem with a chainsaw.",
+  hits:["AFUERA! Slap inflation!","Chainsaw does not care, and neither do I!","VROOM! Is that all you got?!","I will cut your slap budget by 90%!"],
+  ko:"I fainted, but my budget is balanced."},
+ {id:'batka',name:"Batka Potato",title:"Grand Spud Farmer",bg:"#C7E9B4",skin:"#E8B592",hair:"bald",hairCol:"#E8B592",hat:"cap",hatCol:"#4B4B4B",stache:"#3A3A3A",suit:"#5A4A3A",tie:null,
+  items:[["🥔",176,268,40,0],["🚜",36,268,34,0]],
+  intro:"Believes potatoes solve geopolitics.",
+  hits:["Ai! My potato!","Slap is tax on cheeks.","I have farmed worse than this.","Hit me with a spud, not a hand!"],
+  ko:"Gone to inspect potatoes. Nobody follow."},
+ {id:'altmatic',name:"Sam Altmatic",title:"Robot God Next Tuesday",bg:"#E0C3FC",skin:"#F2CAAC",hair:"mop",hairCol:"#6A4E32",suit:"#CFD4DA",tie:null,
+  items:[["🧠",34,66,34,-10],["💸",178,268,34,0],["✨",206,62,26,10]],
+  intro:"Promises a robot god. Delivery: next Tuesday.",
+  hits:["This slap was trained on all human faces.","Slap safety paper coming soon.","AGI is near. Also, ow.","Please invest in my cheek."],
+  ko:"I'm pivoting to an even bigger pivot."}
+];
+
+/* ---------- face builder ---------- */
+function darker(h){const n=parseInt(h.slice(1),16);let r=(n>>16)&255,g=(n>>8)&255,b=n&255;return `rgb(${Math.round(r*.78)},${Math.round(g*.78)},${Math.round(b*.78)})`;}
+function hairShape(st,col){
+  switch(st){
+    case 'swoop': return `<path d="M52 110 Q36 36 118 40 Q202 38 190 112 Q176 76 128 80 Q92 66 62 104Z" fill="${col}"/><path d="M56 96 Q92 36 196 80 Q150 54 100 68Z" fill="${col}"/>`;
+    case 'short': return `<path d="M54 112 Q46 42 120 44 Q194 42 186 112 Q172 78 120 80 Q68 78 54 112Z" fill="${col}"/>`;
+    case 'side': return `<path d="M54 112 Q46 42 120 44 Q194 42 186 112 Q170 86 130 78 Q90 74 54 112Z" fill="${col}"/><path d="M118 46 Q112 66 90 76" stroke="${darker(col)}" stroke-width="3" fill="none"/>`;
+    case 'mop': return `<path d="M48 120 Q30 60 70 46 Q80 22 110 40 Q130 14 156 40 Q196 36 192 80 Q202 100 188 122 Q176 84 150 80 Q120 94 90 80 Q64 84 48 120Z" fill="${col}"/>`;
+    case 'bowl': return `<path d="M48 128 Q36 44 120 40 Q204 44 192 128 L184 96 L56 96Z" fill="${col}"/>`;
+    case 'wild': return `<g fill="${col}"><circle cx="62" cy="88" r="18"/><circle cx="78" cy="62" r="22"/><circle cx="104" cy="50" r="22"/><circle cx="136" cy="50" r="22"/><circle cx="162" cy="62" r="22"/><circle cx="178" cy="88" r="18"/></g>`;
+    case 'bald': return `<ellipse cx="96" cy="68" rx="18" ry="8" fill="#fff" opacity=".45" transform="rotate(-20 96 68)"/>`;
+  }
+  return '';
+}
+function face(c,thumb){
+  const sk=c.skin, sh=darker(sk), hc=c.hairCol||'#333', ink='#1B1A33';
+  let s=`<svg class="face" viewBox="${thumb?'26 22 188 198':'0 0 240 300'}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${c.name}">`;
+  if(c.ears==='bear'){
+    s+=`<circle cx="66" cy="64" r="24" fill="#7A4B2A"/><circle cx="66" cy="64" r="12" fill="#E0A77A"/><circle cx="174" cy="64" r="24" fill="#7A4B2A"/><circle cx="174" cy="64" r="12" fill="#E0A77A"/>`;
+  }
+  s+=`<path d="M10 300 Q20 232 120 226 Q220 232 230 300Z" fill="${c.suit||sk}"/>`;
+  if(c.belt) s+=`<rect x="10" y="286" width="220" height="14" fill="#16161A"/>`;
+  s+=`<rect x="100" y="186" width="40" height="54" rx="10" fill="${sh}"/>`;
+  if(c.suit){
+    if(c.tie){
+      const tl=c.longTie?310:298;
+      s+=`<path d="M92 230 L120 272 L148 230Z" fill="#fff"/><path d="M114 246 L126 246 L132 ${tl-8} L120 ${tl} L108 ${tl-8}Z" fill="${c.tie}"/>`;
+    } else {
+      s+=`<path d="M96 228 Q120 258 144 228Z" fill="${sh}"/>`;
+    }
+  }
+  s+=`<ellipse cx="52" cy="136" rx="11" ry="19" fill="${sk}"/><ellipse cx="188" cy="136" rx="11" ry="19" fill="${sk}"/>`;
+  s+=`<ellipse cx="120" cy="130" rx="68" ry="78" fill="${sk}"/>`;
+  s+=`<circle cx="72" cy="158" r="13" fill="#FF6B81" opacity=".28"/><circle cx="168" cy="158" r="13" fill="#FF6B81" opacity=".28"/>`;
+  s+=hairShape(c.hair,hc);
+  if(c.burns) s+=`<path d="M54 110 L60 164 L74 150 L70 108Z" fill="${hc}"/><path d="M186 110 L180 164 L166 150 L170 108Z" fill="${hc}"/>`;
+  if(c.hat==='beret') s+=`<ellipse cx="128" cy="54" rx="66" ry="21" fill="#1D3557" transform="rotate(-8 128 54)"/><rect x="120" y="26" width="9" height="14" rx="3" fill="#1D3557"/>`;
+  if(c.hat==='cap') s+=`<path d="M50 102 Q56 42 120 42 Q184 42 190 102Z" fill="${c.hatCol}"/><path d="M44 104 Q120 88 196 104 L200 112 Q120 98 40 112Z" fill="${darker(c.hatCol)}"/>`;
+  /* eyes */
+  const brow=c.hair==='bald'||c.hair==='wild'||c.hair==='bowl'?'#3a2e2a':hc;
+  s+=`<g class="e-n"><ellipse cx="92" cy="122" rx="14" ry="15" fill="#fff"/><ellipse cx="148" cy="122" rx="14" ry="15" fill="#fff"/><circle cx="94" cy="124" r="7" fill="${c.pupil||ink}"/><circle cx="146" cy="124" r="7" fill="${c.pupil||ink}"/><circle cx="96" cy="121" r="2.4" fill="#fff"/><circle cx="148" cy="121" r="2.4" fill="#fff"/>`;
+  if(c.sleepy) s+=`<rect x="76" y="106" width="32" height="15" fill="${sk}"/><rect x="132" y="106" width="32" height="15" fill="${sk}"/><path d="M78 120 H106 M134 120 H162" stroke="${ink}" stroke-width="3"/>`;
+  s+=`</g><g class="e-h" fill="none" stroke="${ink}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"><path d="M78 110 L104 124 L78 138"/><path d="M162 110 L136 124 L162 138"/></g>`;
+  s+=`<path d="M76 102 Q92 92 108 100 M132 100 Q148 92 164 102" stroke="${brow}" stroke-width="5" fill="none" stroke-linecap="round"/>`;
+  s+=`<path d="M121 128 Q108 152 121 157" stroke="${sh}" stroke-width="4.5" fill="none" stroke-linecap="round"/>`;
+  /* glasses */
+  if(c.glasses==='round') s+=`<g fill="none" stroke="#111" stroke-width="4.5"><circle cx="92" cy="122" r="20"/><circle cx="148" cy="122" r="20"/><path d="M112 122 H128"/></g>`;
+  if(c.glasses==='square') s+=`<g fill="none" stroke="#111" stroke-width="4.5"><rect x="71" y="106" width="42" height="32" rx="7"/><rect x="127" y="106" width="42" height="32" rx="7"/><path d="M113 120 H127"/></g>`;
+  if(c.glasses==='aviator') s+=`<path d="M70 106 H114 Q114 142 92 144 Q70 142 70 106Z M126 106 H170 Q170 142 148 144 Q126 142 126 106Z" fill="#111" opacity=".88"/><path d="M114 112 H126" stroke="#111" stroke-width="4"/>`;
+  /* mouth */
+  s+=`<path class="m-n" d="M94 172 Q120 192 146 172" fill="none" stroke="#7A2E2E" stroke-width="5.5" stroke-linecap="round"/>`;
+  s+=`<g class="m-h"><ellipse cx="120" cy="180" rx="16" ry="14" fill="#6B1D2A"/><ellipse cx="120" cy="187" rx="9" ry="6" fill="#E5707E"/></g>`;
+  if(c.stache) s+=`<path d="M120 164 Q96 148 74 170 Q96 178 120 169 Q144 178 166 170 Q144 148 120 164Z" fill="${c.stache}"/>`;
+  /* items */
+  (c.items||[]).forEach(it=>{
+    if(thumb && it[2]>200) return;
+    s+=`<text x="${it[1]}" y="${it[2]}" font-size="${it[3]}" text-anchor="middle" dominant-baseline="middle" transform="rotate(${it[4]} ${it[1]} ${it[2]})">${it[0]}</text>`;
+  });
+  if(!thumb) s+=`<g class="marks"></g>`;
+  return s+`</svg>`;
+}
+
+/* ---------- weapons ---------- */
+const W=[
+  {id:'hand',name:'Open Hand',emoji:'✋',dmg:1,pts:1,at:0,words:["SMACK!","WHAM!","WHAP!","SLAPPED!"],tip:"The classic."},
+  {id:'slipper',name:'Slipper',emoji:'🩴',dmg:1.25,pts:1,at:20,words:["THWAP!","FLOP!","GRANDMA!","SMACK!"],tip:"Grandma-grade. +25% damage."},
+  {id:'fish',name:'Wet Fish',emoji:'🐟',dmg:1,pts:1.2,at:60,words:["SPLAT!","SLOP!","FISHY!","BLORP!"],tip:"Slippery. +20% points."},
+  {id:'baguette',name:'Baguette',emoji:'🥖',dmg:1.5,pts:1,at:120,words:["CRUNCH!","BAGUETTE!","BONJOUR!","CRACK!"],tip:"Crusty. +50% damage."},
+  {id:'chicken',name:'Rubber Chicken',emoji:'🐔',dmg:.8,pts:1.5,at:250,words:["SQUEAK!","BAWK!","HONK?","SQUEE!"],tip:"Squeaky. +50% points."},
+  {id:'pan',name:'Frying Pan',emoji:'🍳',dmg:2.2,pts:.7,at:400,words:["BONK!","CLANG!","DING!","KLONG!"],tip:"Cartoon physics. 2.2x damage."},
+  {id:'glove',name:'Boxing Glove',emoji:'🥊',dmg:1.8,pts:1,at:600,words:["POW!","JAB!","HOOK!","K.O.!"],tip:"Heavyweight. 1.8x damage."},
+  {id:'sock',name:'Smelly Sock',emoji:'🧦',dmg:1,pts:1.4,at:800,words:["PFFT!","WHIFF!","EWWW!","FLOP!"],tip:"Cursed. +40% points."},
+  {id:'cheese',name:'Cheese Wheel',emoji:'🧀',dmg:1.6,pts:1.2,at:1100,words:["GOUDA!","CHEESED!","BRIE!","THUNK!"],tip:"Aged. 1.6x damage, +20% points."},
+  {id:'duck',name:'Rubber Duck',emoji:'🦆',dmg:.9,pts:1.7,at:1500,words:["QUACK!","SQUEAK!","DUCKED!","HONK!"],tip:"Quacks. +70% points."},
+  {id:'octopus',name:'Angry Octopus',emoji:'🐙',dmg:1.4,pts:1.5,at:2200,words:["SLURP!","TENTACLE!","SPLOOSH!","INK!"],tip:"Eight arms. 1.4x damage, +50% points."},
+  {id:'pizza',name:'Giant Pizza',emoji:'🍕',dmg:2.5,pts:1.2,at:3000,words:["CHEESY!","SLICE!","MAMMA MIA!","FLOP!"],tip:"Final form. 2.5x damage."}
+];
+const WBY={};W.forEach(w=>WBY[w.id]=w);
+
+/* ---------- trophies ---------- */
+const TROPHIES=[
+  {id:'first',ic:'🩸',t:"First Blood",d:"Land your very first slap."},
+  {id:'century',ic:'💯',t:"Century Slapper",d:"Reach 100 total slaps."},
+  {id:'combo15',ic:'🔥',t:"Combo Maniac",d:"Hit a x15 combo."},
+  {id:'fishy',ic:'🐟',t:"Something Fishy",d:"Land 40 slaps with the Wet Fish."},
+  {id:'diplo',ic:'🥖',t:"Diplomatic Incident",d:"K.O. Macaroon with a baguette."},
+  {id:'nap',ic:'😴',t:"Sleep Therapy",d:"K.O. the Chancellor Of Naps."},
+  {id:'squeak',ic:'🐔',t:"Squeaky Clean",d:"K.O. anyone with the Rubber Chicken."},
+  {id:'crit',ic:'💥',t:"Critical Thinker",d:"Land 10 critical slaps."},
+  {id:'rush',ic:'⏱️',t:"Rush Hour",d:"Score 2000 in a Rush run."},
+  {id:'summit',ic:'🏆',t:"Full Summit",d:"Humble all 15 dignitaries."},
+  {id:'clear',ic:'👑',t:"Summit Cleared",d:"Humble all 15 in a single Rush run."},
+  {id:'endless100',ic:'🦾',t:"Arm Day",d:"Land 100 slaps in one Endless run."},
+  {id:'endless400',ic:'🚑',t:"Call A Paramedic",d:"Land 400 slaps in one Endless run."},
+  {id:'pizza',ic:'🍕',t:"Final Form",d:"Unlock the Giant Pizza."}
+];
+
+/* ---------- save ---------- */
+const DEF={slaps:0,beaten:{},nick:"",weapon:'hand',ach:{},wc:{},crits:0,runs:[],rushBest:0,endlessBest:0};
+let save=JSON.parse(JSON.stringify(DEF));
+try{
+  const t=JSON.parse(localStorage.getItem('slapSummit2')||localStorage.getItem('slapSummit1')||'null');
+  if(t&&typeof t.slaps==='number')save=Object.assign(save,t);
+}catch(e){}
+function persist(){try{localStorage.setItem('slapSummit2',JSON.stringify(save));}catch(e){}}
+const SHARE_URL="";/* put the public game link here later, it is added to tweets and the copy button automatically */
+
+/* ---------- sound ---------- */
+let ac=null,muted=false;
+function ctx(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();return ac;}catch(e){return null;}}
+function nzBuf(a,len,pow){const b=a.createBuffer(1,Math.floor(a.sampleRate*len),a.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,pow);return b;}
+function noise(a,t,len,pow,type,freq,q,vol){const s=a.createBufferSource();s.buffer=nzBuf(a,len,pow);const f=a.createBiquadFilter();f.type=type;f.frequency.value=freq;f.Q.value=q;const g=a.createGain();g.gain.value=vol;s.connect(f);f.connect(g);g.connect(a.destination);s.start(t);}
+function tone(a,t,type,f0,f1,dur,vol){const o=a.createOscillator(),g=a.createGain();o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+dur+.03);}
+const SND={
+  hand:(a,t)=>{noise(a,t,.12,3,'bandpass',1600+Math.random()*1400,1,.9);tone(a,t,'sine',190,60,.14,.6);},
+  slipper:(a,t)=>{noise(a,t,.1,2,'lowpass',900,1,1.1);tone(a,t,'sine',140,50,.12,.7);},
+  fish:(a,t)=>{noise(a,t,.18,1.5,'bandpass',500,2,1.2);tone(a,t,'sine',300,90,.16,.5);tone(a,t+.05,'sine',420,160,.1,.3);},
+  baguette:(a,t)=>{noise(a,t,.06,4,'highpass',3000,1,1);tone(a,t,'square',900,200,.05,.22);tone(a,t,'sine',120,50,.12,.5);},
+  chicken:(a,t)=>{tone(a,t,'sawtooth',500,1300,.12,.3);tone(a,t+.1,'sawtooth',1300,700,.09,.22);},
+  pan:(a,t)=>{tone(a,t,'sine',620,600,.5,.5);tone(a,t,'square',1230,1200,.3,.1);noise(a,t,.05,3,'highpass',2000,1,.6);},
+  glove:(a,t)=>{noise(a,t,.08,2,'lowpass',500,1,1.2);tone(a,t,'sine',110,40,.18,1);},
+  sock:(a,t)=>{noise(a,t,.2,1.2,'lowpass',400,1,.7);tone(a,t,'sine',200,80,.18,.3);},
+  cheese:(a,t)=>{tone(a,t,'sine',260,130,.1,.8);noise(a,t,.07,3,'bandpass',900,2,.7);},
+  duck:(a,t)=>{tone(a,t,'sawtooth',420,300,.14,.3);tone(a,t+.13,'sawtooth',360,240,.12,.25);},
+  octopus:(a,t)=>{noise(a,t,.22,1.5,'bandpass',350,3,1.1);tone(a,t,'sine',500,120,.2,.4);tone(a,t+.06,'sine',200,500,.12,.25);},
+  pizza:(a,t)=>{noise(a,t,.14,2,'highpass',1500,1,.7);tone(a,t,'sine',150,70,.14,.6);}
+};
+const KOSND=[
+  (a,t)=>{tone(a,t,'sawtooth',311,308,.26,.28);tone(a,t+.28,'sawtooth',294,291,.26,.28);tone(a,t+.56,'sawtooth',277,274,.26,.28);tone(a,t+.84,'sawtooth',262,150,.8,.3);},
+  (a,t)=>{[440,554,659].forEach(f=>tone(a,t,'sawtooth',f,f,.5,.12));[440,554,659].forEach(f=>tone(a,t+.6,'sawtooth',f,f,.3,.12));},
+  (a,t)=>{tone(a,t,'sine',75,28,.9,1);noise(a,t,.5,2,'lowpass',250,1,.8);},
+  (a,t)=>{tone(a,t,'sawtooth',950,180,.9,.22);tone(a,t+.05,'square',880,150,.85,.08);}
+];
+function sfx(id){if(muted)return;const a=ctx();if(!a)return;try{SND[id](a,a.currentTime);}catch(e){}}
+function sfxKO(){if(muted)return;const a=ctx();if(!a)return;try{KOSND[Math.floor(Math.random()*KOSND.length)](a,a.currentTime);}catch(e){}}
+function sfxCrit(){if(muted)return;const a=ctx();if(!a)return;try{const t=a.currentTime;tone(a,t,'square',1400,300,.18,.2);tone(a,t,'sine',60,30,.3,.8);}catch(e){}}
+function buzz(n){try{if(navigator.vibrate)navigator.vibrate(n);}catch(e){}}
+
+/* ---------- ui refs & helpers ---------- */
+const $=id=>document.getElementById(id);
+const selEl=$('select'),plEl=$('play'),grid=$('grid'),stage=$('stage'),fb=$('fb'),hand=$('hand'),bubble=$('bubble'),
+      fill=$('fill'),cardEl=$('card'),scEl=$('sc'),totEl=$('tot'),comboEl=$('combo'),timerEl=$('timer');
+function el(tag,cls,txt){const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e;}
+function toast(t){const h=$('toastHost');h.innerHTML='';const d=el('div',null,t);d.id='toast';h.appendChild(d);setTimeout(()=>{if(d.parentNode)d.remove();},2700);}
+const DAILY=Math.floor(Date.now()/86400000)%C.length;
+function cleanNick(s){return String(s||'').replace(/[\u0000-\u001F<>]/g,'').replace(/\s+/g,' ').trim().slice(0,14);}
+function unlockTro(id){
+  if(save.ach[id])return;save.ach[id]=1;persist();
+  const t=TROPHIES.find(x=>x.id===id);if(t)toast(`Trophy: ${t.t} ${t.ic}`);
+  renderSelectStats();
+}
+
+/* ---------- cloud leaderboard (shared db when available) ---------- */
+let DB=null,UID=null,board=[],boardState='loading';
+async function initCloud(){
+  try{
+    if(!window.claude||!claude.use){boardState='off';return;}
+    const [u,d]=await Promise.all([claude.use('user'),claude.use('db')]);
+    if(!u||!d){boardState='off';return;}
+    UID=await u.id();
+    if(!UID){boardState='off';return;}
+    DB=d;boardState='live';
+    d.collection('scores').orderBy('best','desc').limit(20).onSnapshot(
+      s=>{board=s.docs.map(x=>Object.assign({id:x.id},x.data()));if(sheetKind==='board')renderSheet();},
+      ()=>{boardState='off';}
+    );
+  }catch(e){boardState='off';}
+}
+async function submitScore(score,kos,cleared,left){
+  const run={nick:save.nick,score,kos,cleared:!!cleared,ts:Date.now()};
+  save.runs.push(run);save.runs.sort((a,b)=>b.score-a.score);save.runs=save.runs.slice(0,10);
+  if(score>save.rushBest)save.rushBest=score;
+  persist();
+  if(!cleared||!DB||!UID)return;
+  try{
+    const ref=DB.doc('scores/'+UID),snap=await ref.get(),old=snap.exists?snap.data():null;
+    if(!old||score>(old.best||0)){
+      await ref.set({nick:save.nick,best:score,kos:kos,left:left,weapon:weaponId,ts:Date.now()});
+    }else if(old.nick!==save.nick){
+      await ref.update({nick:save.nick});
+    }
+  }catch(e){toast("Shared board is read-only for you. Score kept on this device.");}
+}
+
+/* ---------- state ---------- */
+let mode='classic',weaponId=WBY[save.weapon]&&save.weapon||'hand',sheetKind=null;
+let cur=0,dig=100,score=0,combo=0,maxCombo=0,lastHit=0,lastSwipe=0,ko=false,svg=null,marksG=null,hitT=null,comboT=null,down=false,lx=0,ly=0;
+let rush=null,rushTimer=null,endless=null;
+const unlocked=w=>save.slaps>=w.at;
+if(!unlocked(WBY[weaponId]))weaponId='hand';
+
+/* ---------- select screen ---------- */
+function renderSelectStats(){
+  $('sTot').textContent=save.slaps.toLocaleString('en-US');
+  $('sKo').textContent=Object.keys(save.beaten).length;
+  $('nickChip').textContent=save.nick?`Playing as ${save.nick}`:'Set nickname';
+  $('troCount').textContent=`${Object.keys(save.ach).length}/${TROPHIES.length}`;
+}
+function renderWeapons(host){
+  host.innerHTML='';
+  W.forEach(w=>{
+    const b=el('button','wbtn');b.setAttribute('aria-label',w.name);
+    if(unlocked(w)){
+      b.textContent=w.emoji;b.setAttribute('aria-pressed',w.id===weaponId?'true':'false');b.title=`${w.name}: ${w.tip}`;
+      b.onclick=()=>{weaponId=w.id;save.weapon=w.id;persist();hand.textContent=w.emoji;renderWeapons($('wSelect'));renderWeapons($('wPlay'));};
+    }else{
+      b.classList.add('locked');b.textContent='🔒';b.setAttribute('aria-pressed','false');
+      b.appendChild(el('small',null,w.at+' slaps'));
+      b.onclick=()=>toast(`${w.name} unlocks at ${w.at} total slaps. You have ${save.slaps}.`);
+    }
+    host.appendChild(b);
+  });
+}
+function renderModeHelp(){
+  $('mClassic').setAttribute('aria-pressed',mode==='classic');
+  $('mRush').setAttribute('aria-pressed',mode==='rush');
+  $('mEndless').setAttribute('aria-pressed',mode==='endless');
+  $('modeHelp').textContent=mode==='classic'
+    ?"Pick a victim. Slap until their dignity hits zero."
+    :mode==='rush'
+    ?"45 seconds, +6s per K.O. Humble all 15 dignitaries to clear the summit and land on the leaderboard."
+    :`Pick one victim and slap nonstop. Every 100 slaps he is knocked out and you get a 5 second break. Your record: ${save.endlessBest} slaps.`;
+}
+function renderSelect(){
+  grid.innerHTML='';
+  C.forEach((c,i)=>{
+    const b=el('button','card');
+    b.innerHTML=`<div class="thumb" style="background:${c.bg}">${face(c,true)}</div><div class="nm">${c.name}</div><div class="tt">${c.title}</div>`;
+    if(save.beaten[c.id])b.appendChild(el('span','badge',"KO'd"));
+    if(i===DAILY)b.appendChild(el('span','badge daily',"2x TODAY"));
+    b.onclick=()=>startGame(i);grid.appendChild(b);
+  });
+  renderSelectStats();renderWeapons($('wSelect'));renderModeHelp();
+}
+
+/* ---------- sheets ---------- */
+let boardTab='global';
+function closeSheet(){sheetKind=null;$('sheetHost').innerHTML='';}
+function openSheet(kind){sheetKind=kind;renderSheet();}
+function renderSheet(){
+  const host=$('sheetHost');host.innerHTML='';
+  const ov=el('div','overlay');ov.onclick=e=>{if(e.target===ov&&sheetKind!=='nick')closeSheet();};
+  const sh=el('div','sheet');ov.appendChild(sh);host.appendChild(ov);
+  if(sheetKind==='nick'){
+    sh.appendChild(el('h2',null,"Who is slapping?"));
+    sh.appendChild(el('p',null,"Pick a nickname for the leaderboard (max 14 characters)."));
+    const inp=el('input','nickin');inp.maxLength=14;inp.placeholder="SlapLord_42";inp.value=save.nick||"";inp.setAttribute('aria-label','Nickname');
+    sh.appendChild(inp);
+    const go=el('button','btn hot',"Enter the Summit");
+    const done=()=>{const n=cleanNick(inp.value);if(!n){toast("A nickname is required to enter.");return;}save.nick=n;persist();closeSheet();renderSelectStats();};
+    go.onclick=done;inp.onkeydown=e=>{if(e.key==='Enter')done();};
+    sh.appendChild(go);setTimeout(()=>{try{inp.focus();}catch(e){}},50);
+    return;
+  }
+  if(sheetKind==='board'){
+    sh.appendChild(el('h2',null,"Leaderboard"));
+    const tabs=el('div','tabs');
+    [['global','Crew'],['mine','My runs']].forEach(([k,l])=>{
+      const b=el('button',null,l);b.setAttribute('aria-pressed',boardTab===k);b.onclick=()=>{boardTab=k;renderSheet();};tabs.appendChild(b);
+    });
+    sh.appendChild(tabs);
+    const ul=el('ul','lb');
+    if(boardTab==='global'){
+      if(boardState==='live')sh.appendChild(el('p',null,"Only Rush runs that humble all 15 dignitaries make the Crew board."));
+      if(boardState!=='live'){
+        sh.appendChild(el('p',null,"The shared crew board is only live for people opened in Claude with access to this game. Your device's best runs are in the My runs tab."));
+      }else if(!board.length){
+        ul.appendChild(el('div','empty',"Nobody has cleared the summit yet. Be the first."));sh.appendChild(ul);
+      }else{
+        board.forEach((r,i)=>{
+          const li=el('li',r.id===UID?'me':'');
+          li.appendChild(el('span','rk','#'+(i+1)));
+          const nk=el('span','nk',r.nick||'Anonymous');nk.appendChild(el('span','ex',`Cleared with ${r.left||0}s left`));
+          li.appendChild(nk);li.appendChild(el('span','sc',String(r.best||0)));ul.appendChild(li);
+        });
+        sh.appendChild(ul);
+      }
+    }else{
+      if(!save.runs.length)ul.appendChild(el('div','empty',"No Rush runs yet. Hit Rush 45s and set a score."));
+      save.runs.forEach((r,i)=>{
+        const li=el('li',i===0?'me':'');
+        li.appendChild(el('span','rk','#'+(i+1)));
+        const nk=el('span','nk',r.nick||'You');nk.appendChild(el('span','ex',`${r.kos} K.O.s${r.cleared?', summit cleared':''}`));
+        li.appendChild(nk);li.appendChild(el('span','sc',String(r.score)));ul.appendChild(li);
+      });
+      sh.appendChild(ul);
+    }
+    const x=el('button','btn',"Close");x.onclick=closeSheet;sh.appendChild(x);
+    return;
+  }
+  if(sheetKind==='tro'){
+    sh.appendChild(el('h2',null,"Trophies"));
+    const ul=el('ul','tro');
+    TROPHIES.forEach(t=>{
+      const got=!!save.ach[t.id],li=el('li',got?'got':'no');
+      li.appendChild(el('span','ic',got?t.ic:'🔒'));
+      const d=el('div');d.appendChild(el('b',null,t.t));d.appendChild(el('span',null,t.d));li.appendChild(d);ul.appendChild(li);
+    });
+    sh.appendChild(ul);
+    const x=el('button','btn',"Close");x.onclick=closeSheet;sh.appendChild(x);
+  }
+}
+
+/* ---------- game ---------- */
+const CAPS=["SKILL ISSUE","RATIO + L","TOUCH GRASS","NOT STONKS","GG EZ","BONK!","L + RATIO","DEPLOYED TO MARS","NO DIGNITY LEFT","CANCELLED (BY HAND)","DELETED","PEAK DIPLOMACY"];
+const CONF=["💥","⭐","💫","✨"];
+function say(t){bubble.textContent=t;bubble.classList.remove('say');void bubble.offsetWidth;bubble.classList.add('say');}
+function setMeter(){fill.style.width=dig+'%';fill.style.background=dig>50?'var(--ok)':dig>25?'var(--warn)':'var(--pop)';}
+function setTimerUI(){
+  if(rush){timerEl.hidden=false;timerEl.textContent=Math.max(0,rush.time).toFixed(1);timerEl.classList.toggle('low',rush.time<=8);}
+  else if(endless){timerEl.hidden=false;timerEl.textContent=endless.slaps+' slaps';timerEl.classList.remove('low');}
+  else timerEl.hidden=true;
+}
+function loadChar(i){
+  cur=i;const c=C[i];dig=100;ko=false;combo=0;
+  $('pname').textContent=c.name;$('ptitle').textContent=rush?`Victim ${rush.kos+1} of ${C.length}. ${c.intro}`:c.intro;
+  fb.className='facebox';fb.innerHTML=face(c,false);
+  svg=fb.querySelector('svg');marksG=svg.querySelector('.marks');
+  stage.style.background=c.bg;cardEl.hidden=true;comboEl.textContent='';
+  hand.textContent=WBY[weaponId].emoji;setMeter();setTimerUI();
+}
+function startGame(i){
+  stopRush();
+  score=0;maxCombo=0;rush=null;endless=null;
+  if(mode==='rush'){
+    const rest=C.map((_,k)=>k).filter(k=>k!==i);
+    for(let k=rest.length-1;k>0;k--){const j=Math.floor(Math.random()*(k+1));[rest[k],rest[j]]=[rest[j],rest[k]];}
+    rush={time:45,kos:0,started:false,done:false,queue:[i].concat(rest)};
+  }else if(mode==='endless'){
+    endless={slaps:0,kos:0,done:false};
+  }
+  loadChar(i);
+  scEl.textContent='0';totEl.textContent=save.slaps.toLocaleString('en-US');
+  renderWeapons($('wPlay'));
+  say(rush?"Rush! Humble all 15 to clear the summit. The clock starts on your first slap.":endless?"Endless mode. 100 slaps and I go down. Then you get 5 seconds off. Hit Finish when your arm gives up.":"Go on. Slap me. Tap or swipe!");
+  $('finish').hidden=!endless;
+  selEl.hidden=true;plEl.hidden=false;
+  if(i===DAILY)toast("Today's victim: double points!");
+}
+function stopRush(){clearInterval(rushTimer);rushTimer=null;}
+function leave(){
+  stopRush();clearLock();
+  if(endless&&!endless.done&&endless.slaps>save.endlessBest){save.endlessBest=endless.slaps;persist();}
+  rush=null;endless=null;$('finish').hidden=true;
+  plEl.hidden=true;selEl.hidden=false;renderSelect();
+}
+function startRushClock(){
+  rush.started=true;
+  rushTimer=setInterval(()=>{
+    if(!rush||rush.done)return;
+    if(!ko)rush.time-=.1;
+    setTimerUI();
+    if(rush.time<=0)endRush();
+  },100);
+}
+
+function doSlap(cx,cy){
+  const fr=svg.getBoundingClientRect(),sr=stage.getBoundingClientRect();
+  const side=cx<fr.left+fr.width/2?-1:1;
+  lastSwipe=performance.now();
+  hand.style.left=(cx-sr.left-52)+'px';hand.style.top=(cy-sr.top-52)+'px';
+  hand.className='hand';void hand.offsetWidth;hand.className='hand '+(side<0?'l':'r');
+  ctx();
+  setTimeout(()=>impact(cx,cy,side),120);
+}
+function impact(cx,cy,side){
+  if(ko)return;
+  if(rush){if(rush.done)return;if(!rush.started)startRushClock();}
+  const c=C[cur],w=WBY[weaponId],fr=svg.getBoundingClientRect(),sr=stage.getBoundingClientRect(),now=performance.now();
+  combo=(now-lastHit<1100)?combo+1:1;lastHit=now;if(combo>maxCombo)maxCombo=combo;
+  const mult=1+Math.floor(combo/6),crit=Math.random()<.1,daily=cur===DAILY;
+  dig=Math.max(0,dig-(4+Math.random()*3.5)*w.dmg*(crit?2.5:1));
+  score+=Math.round(10*mult*w.pts*(crit?3:1)*(daily?2:1));
+  save.slaps++;save.wc[weaponId]=(save.wc[weaponId]||0)+1;
+  if(endless){endless.slaps++;dig=endless.slaps%100===0?0:100-(endless.slaps%100);setTimerUI();}
+  const nw=W.find(x=>x.at===save.slaps);
+  if(nw&&nw.at>0){toast(`New weapon unlocked: ${nw.name} ${nw.emoji}`);renderWeapons($('wPlay'));}
+  scEl.textContent=score;totEl.textContent=save.slaps.toLocaleString('en-US');
+  comboEl.textContent=combo>=3?`x${combo} COMBO`:'';
+  clearTimeout(comboT);comboT=setTimeout(()=>{comboEl.textContent='';},1300);
+  setMeter();
+  if(crit){sfxCrit();buzz([40,30,60]);stage.classList.remove('shake');void stage.offsetWidth;stage.classList.add('shake');save.crits++;if(save.crits>=10)unlockTro('crit');}
+  else{sfx(weaponId);buzz(22);}
+  /* trophies */
+  if(save.slaps===1)unlockTro('first');
+  if(save.slaps>=100)unlockTro('century');
+  if(combo>=15)unlockTro('combo15');
+  if((save.wc.fish||0)>=40)unlockTro('fishy');
+  if(save.slaps>=3000)unlockTro('pizza');
+  /* handprint */
+  const ex=Math.min(190,Math.max(50,(cx-fr.left)/fr.width*240)),ey=Math.min(200,Math.max(84,(cy-fr.top)/fr.height*300));
+  const m=document.createElementNS('http://www.w3.org/2000/svg','g');
+  m.setAttribute('transform',`translate(${ex.toFixed(1)} ${ey.toFixed(1)}) rotate(${side*(-14+Math.random()*10)})`);
+  m.innerHTML=`<ellipse rx="17" ry="22" fill="#E11D48" opacity=".5"/><path d="M-12 -18 l-3 -16 M-4 -22 l-1 -18 M5 -22 l1 -18 M13 -18 l4 -15" stroke="#E11D48" stroke-width="5" stroke-linecap="round" opacity=".5"/>`;
+  m.style.transition='opacity 1.2s';marksG.appendChild(m);
+  setTimeout(()=>{m.style.opacity='0';},2200);setTimeout(()=>m.remove(),3600);
+  /* face reaction */
+  fb.classList.remove('hl','hr');void fb.offsetWidth;fb.classList.add(side<0?'hl':'hr');
+  svg.classList.add('hit');clearTimeout(hitT);hitT=setTimeout(()=>svg.classList.remove('hit'),360);
+  /* pop word */
+  const p=el('div','pop'+(crit?' crit':''),crit?"CRITICAL!":w.words[Math.floor(Math.random()*w.words.length)]);
+  p.style.left=(cx-sr.left)+'px';p.style.top=(cy-sr.top-30)+'px';
+  p.style.setProperty('--r',(Math.random()*30-15)+'deg');
+  if(!crit)p.style.setProperty('--c',["#FFD23F","#FFFFFF","#7CF5E6","#FF9EB5"][Math.floor(Math.random()*4)]);
+  stage.appendChild(p);setTimeout(()=>p.remove(),720);
+  /* line */
+  let k;do{k=Math.floor(Math.random()*c.hits.length);}while(k===impact.k&&c.hits.length>1);
+  impact.k=k;say(c.hits[k]);
+  if(dig<=0){if(endless)wipe(c);else knockout(c);}
+}
+
+function confetti(){
+  const w=WBY[weaponId].emoji;
+  for(let n=0;n<16;n++){
+    const d=el('div','conf',n%3===0?w:CONF[n%CONF.length]);
+    const ang=Math.random()*Math.PI*2,dist=90+Math.random()*130;
+    d.style.setProperty('--dx',Math.cos(ang)*dist+'px');d.style.setProperty('--dy',(Math.sin(ang)*dist-40)+'px');
+    d.style.setProperty('--rot',(Math.random()*720-360)+'deg');
+    stage.appendChild(d);setTimeout(()=>d.remove(),1050);
+  }
+}
+function clearLock(){
+  if(endless&&endless.lockTimer){clearInterval(endless.lockTimer);endless.lockTimer=null;}
+  const l=document.querySelector('.lock');if(l)l.remove();
+}
+function wipe(c){
+  endless.kos++;ko=true;
+  fb.classList.remove('hl','hr');void fb.offsetWidth;
+  fb.classList.add('ko'+(1+Math.floor(Math.random()*4)));
+  svg.classList.add('hit');sfxKO();buzz([60,40,120]);confetti();
+  stage.classList.remove('shake');void stage.offsetWidth;stage.classList.add('shake');
+  say(c.ko);
+  let left=5;
+  const lk=el('div','lock');
+  const paint=()=>{lk.textContent='KNOCKED OUT';lk.appendChild(el('small',null,`Back in ${left}`));};
+  paint();stage.appendChild(lk);
+  endless.lockTimer=setInterval(()=>{
+    left--;
+    if(!endless||endless.done){clearLock();return;}
+    if(left>0){paint();return;}
+    clearLock();
+    loadChar(cur);say("Back for more? Slap on!");
+  },1000);
+}
+function knockout(c){
+  ko=true;save.beaten[c.id]=true;
+  const daily=cur===DAILY;
+  fb.classList.remove('hl','hr');void fb.offsetWidth;
+  fb.classList.add('ko'+(1+Math.floor(Math.random()*4)));
+  svg.classList.add('hit');sfxKO();buzz([60,40,120]);confetti();
+  stage.classList.remove('shake');void stage.offsetWidth;stage.classList.add('shake');
+  const st=el('div','stamp',CAPS[Math.floor(Math.random()*CAPS.length)]);stage.appendChild(st);setTimeout(()=>st.remove(),1750);
+  say(c.ko);
+  if(c.id==='macaroon'&&weaponId==='baguette')unlockTro('diplo');
+  if(c.id==='olaf')unlockTro('nap');
+  if(weaponId==='chicken')unlockTro('squeak');
+  if(Object.keys(save.beaten).length>=C.length)unlockTro('summit');
+  persist();
+  if(rush){
+    rush.kos++;rush.time+=6;score+=100*(daily?2:1);scEl.textContent=score;setTimerUI();
+    if(rush.kos>=C.length){
+      setTimeout(()=>endRush(true),1000);
+    }else{
+      toast("+6 seconds! "+rush.kos+" of "+C.length+" humbled.");
+      setTimeout(()=>{
+        if(!rush||rush.done)return;
+        const n=rush.queue[rush.kos];loadChar(n);say(C[n].intro);
+      },1000);
+    }
+  }else{
+    setTimeout(()=>showClassicCard(c),950);
+  }
+}
+
+/* ---------- share + cards ---------- */
+function tweetUrl(text){let u="https://x.com/intent/post?text="+encodeURIComponent(text);if(SHARE_URL)u+="&url="+encodeURIComponent(SHARE_URL);return u;}
+function shareBtns(text){
+  const a=el('a','btn hot',"Post on X");a.href=tweetUrl(text);a.target="_blank";a.rel="noopener noreferrer";
+  const c=el('button','btn',"Copy text");
+  c.onclick=async()=>{try{await navigator.clipboard.writeText(text+(SHARE_URL?"\n"+SHARE_URL:""));toast("Copied. Paste it anywhere.");}catch(e){toast("Copy is blocked here. Use Post on X instead.");}};
+  return [a,c];
+}
+function showCard(title,text,stats,btns){
+  cardEl.innerHTML='';
+  cardEl.appendChild(el('h2',null,title));
+  if(stats&&stats.length){const s=el('div','stats');stats.forEach(t=>s.appendChild(el('span','chip',t)));cardEl.appendChild(s);}
+  cardEl.appendChild(el('p',null,text));
+  const r=el('div','row');btns.forEach(b=>r.appendChild(b));cardEl.appendChild(r);
+  cardEl.hidden=false;
+}
+function btn(label,fn,hot){const b=el('button','btn'+(hot?' hot':''),label);b.onclick=fn;return b;}
+function showClassicCard(c){
+  const all=Object.keys(save.beaten).length===C.length;
+  const w=WBY[weaponId];
+  const text=all?`${c.ko} The whole summit is humbled. Please go touch grass.`:c.ko;
+  const tweet=`🖐️ SLAP SUMMIT\n\nJust K.O.'d ${c.name} with a ${w.name} ${w.emoji}\nScore: ${score} | Best combo: x${maxCombo}\n\n#SlapSummit`;
+  const [post,copy]=shareBtns(tweet);
+  const again=btn("Slap again",()=>startGame(cur),false);
+  const next=btn("Next victim",()=>{
+    let n=-1;for(let k=1;k<=C.length;k++){const j=(cur+k)%C.length;if(!save.beaten[C[j].id]){n=j;break;}}
+    startGame(n<0?(cur+1)%C.length:n);
+  },true);
+  showCard("K.O.!",text,[`Score ${score}`,`Best combo x${maxCombo}`],[post,copy,again,next]);
+}
+function endRush(cleared){
+  if(!rush||rush.done)return;
+  rush.done=true;ko=true;stopRush();
+  if(cleared){score+=1000+Math.round(Math.max(0,rush.time)*50);scEl.textContent=score;unlockTro('clear');}
+  const final=score,kos=rush.kos,left=Math.max(0,Math.round(rush.time));
+  if(final>=2000)unlockTro('rush');
+  const pb=cleared&&final>save.rushBest;
+  submitScore(final,kos,cleared,left);
+  say(cleared?"The whole summit is on the floor.":"Time! Nobody has any dignity left.");
+  sfxKO();buzz([80,50,80]);
+  const w=WBY[weaponId];
+  const tweet=cleared
+    ?`🖐️ SLAP SUMMIT: RUSH\n\nSUMMIT CLEARED! All ${C.length} dignitaries humbled\nScore: ${final} | ${left}s to spare\nWeapon: ${w.name} ${w.emoji}\n\nBeat that.\n#SlapSummit`
+    :`🖐️ SLAP SUMMIT: RUSH\n\n${kos} of ${C.length} dignitaries humbled in Rush\nScore: ${final}\nWeapon: ${w.name} ${w.emoji}\n\nCan you clear all ${C.length}?\n#SlapSummit`;
+  const [post,copy]=shareBtns(tweet);
+  const again=btn("Rush again",()=>startGame(rush.queue[0]),true);
+  const lb=btn("Leaderboard",()=>openSheet('board'),false);
+  const menu=btn("Menu",leave,false);
+  const stats=[`Score ${final}`,`${kos}/${C.length} K.O.s`,`Combo x${maxCombo}`];
+  if(cleared)stats.push(`${left}s left`);
+  const text=cleared
+    ?(boardState==='live'?(pb?"New personal best! You are on the Crew board.":"Summit cleared. Your run counts for the Crew board."):"Summit cleared! The Crew board needs access through Claude, so this run is saved on this device.")
+    :`${kos} of ${C.length} humbled. Clear all ${C.length} to land on the Crew board.`;
+  showCard(cleared?"CLEARED!":"TIME!",text,stats,[post,copy,again,lb,menu]);
+  persist();
+}
+function endEndless(){
+  if(!endless||endless.done)return;
+  endless.done=true;ko=true;clearLock();
+  const n=endless.slaps,kos=endless.kos,pb=n>save.endlessBest;
+  if(pb)save.endlessBest=n;
+  if(n>=100)unlockTro('endless100');
+  if(n>=400)unlockTro('endless400');
+  persist();
+  say("Arm retired. Respect.");
+  const w=WBY[weaponId],startAt=cur;
+  const tweet=`🖐️ SLAP SUMMIT: ENDLESS\n\n${n} nonstop slaps on ${C[startAt].name}\nKnocked out ${kos} times\nScore: ${score} | Best combo: x${maxCombo}\nWeapon: ${w.name} ${w.emoji}\n\n#SlapSummit`;
+  const [post,copy]=shareBtns(tweet);
+  const again=btn("Go again",()=>startGame(startAt),true);
+  const menu=btn("Menu",leave,false);
+  showCard("DONE!",pb?"New personal record for Endless!":`Your Endless record is ${save.endlessBest} slaps.`,[`${n} slaps`,`${kos} knockouts`,`Score ${score}`],[post,copy,again,menu]);
+}
+
+/* ---------- input ---------- */
+stage.addEventListener('pointerdown',e=>{
+  if(ko||e.target.closest('.kocard'))return;
+  e.preventDefault();down=true;lx=e.clientX;ly=e.clientY;doSlap(e.clientX,e.clientY);
+});
+stage.addEventListener('pointermove',e=>{
+  if(!down||ko)return;
+  if(Math.hypot(e.clientX-lx,e.clientY-ly)>80&&performance.now()-lastSwipe>140){lx=e.clientX;ly=e.clientY;doSlap(e.clientX,e.clientY);}
+});
+addEventListener('pointerup',()=>{down=false;});
+addEventListener('pointercancel',()=>{down=false;});
+$('back').onclick=()=>{persist();leave();};
+$('mute').onclick=()=>{muted=!muted;$('mute').textContent=muted?'🔇':'🔊';};
+$('mClassic').onclick=()=>{mode='classic';renderModeHelp();};
+$('mRush').onclick=()=>{mode='rush';renderModeHelp();};
+$('mEndless').onclick=()=>{mode='endless';renderModeHelp();};
+$('finish').onclick=()=>endEndless();
+$('openBoard').onclick=()=>openSheet('board');
+$('openTro').onclick=()=>openSheet('tro');
+$('nickChip').onclick=()=>openSheet('nick');
+addEventListener('pagehide',persist);
+document.addEventListener('contextmenu',e=>{if(!plEl.hidden)e.preventDefault();});
+
+renderSelect();
+initCloud();
+if(!save.nick)openSheet('nick');
+</script>
+</body>
+</html>
