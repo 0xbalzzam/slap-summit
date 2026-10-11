@@ -11,6 +11,7 @@
 <link rel="shortcut icon" href="favicon.ico">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta property="og:type" content="website">
+<meta property="og:url" content="https://slap-summit.onrender.com/">
 <meta property="og:title" content="Slap Summit">
 <meta property="og:description" content="Slap 15 fictional parody dignitaries with a wet fish. Mobile-friendly, single-file browser game.">
 <meta name="twitter:card" content="summary">
@@ -407,7 +408,7 @@ try{
   if(t&&typeof t.slaps==='number')save=Object.assign(save,t);
 }catch(e){}
 function persist(){try{localStorage.setItem('slapSummit2',JSON.stringify(save));}catch(e){}}
-const SHARE_URL="";/* put the public game link here later, it is added to tweets and the copy button automatically */
+const SHARE_URL="https://slap-summit.onrender.com/";/* put the public game link here later, it is added to tweets and the copy button automatically */
 
 /* ---------- sound ---------- */
 let ac=null,muted=false;
@@ -455,8 +456,43 @@ function unlockTro(id){
 }
 
 /* ---------- cloud leaderboard (shared db when available) ---------- */
-let DB=null,UID=null,board=[],boardState='loading';
+/* Global leaderboard backend: Supabase (works on any host, e.g. Render / GitHub Pages).
+   Fill these two values after running supabase-setup.sql, see README. The anon key is meant to be public. */
+const SUPABASE_URL="https://pdgnbuyvazuhooeovufo.supabase.co";   /* example: https://abcdxyzabcdxyz.supabase.co */
+const SUPABASE_KEY="sb_publishable_AHVIrfp_Cdrs7m2pAWAYsg_S3rSelAA";   /* the "anon public" key from Project Settings, API */
+const SB=!!(SUPABASE_URL&&SUPABASE_KEY);
+
+let DB=null,UID=null,board=[],boardState='loading',boardBusy=false;
+function cid(){
+  if(!save.cid){
+    save.cid=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():('c'+Date.now().toString(36)+Math.random().toString(36).slice(2,12));
+    persist();
+  }
+  return save.cid;
+}
+function sbHeaders(json){const h={apikey:SUPABASE_KEY};if(SUPABASE_KEY.indexOf('eyJ')===0)h.Authorization='Bearer '+SUPABASE_KEY;if(json)h['Content-Type']='application/json';return h;}
+async function sbFetchBoard(){
+  if(boardBusy)return;boardBusy=true;
+  try{
+    const r=await fetch(SUPABASE_URL+'/rest/v1/scores?select=client_id,nick,best,kos,left_s&order=best.desc&limit=20',{headers:sbHeaders(false)});
+    if(!r.ok)throw new Error('http '+r.status);
+    const rows=await r.json();
+    board=rows.map(x=>({id:x.client_id,nick:x.nick,best:x.best,kos:x.kos,left:x.left_s}));
+    boardState='live';
+  }catch(e){if(boardState!=='live')boardState='error';}
+  boardBusy=false;
+  if(sheetKind==='board')renderSheet();
+}
+async function sbSubmit(score,kos,left){
+  const r=await fetch(SUPABASE_URL+'/rest/v1/rpc/submit_score',{
+    method:'POST',headers:sbHeaders(true),
+    body:JSON.stringify({p_client:cid(),p_nick:save.nick,p_best:Math.min(score,100000),p_kos:Math.min(kos,15),p_left:Math.min(Math.max(left,0),600),p_weapon:weaponId})
+  });
+  if(!r.ok)throw new Error('http '+r.status);
+}
 async function initCloud(){
+  if(SB){sbFetchBoard();setInterval(()=>{if(sheetKind==='board')sbFetchBoard();},20000);return;}
+  /* fallback: shared database inside Claude artifacts */
   try{
     if(!window.claude||!claude.use){boardState='off';return;}
     const [u,d]=await Promise.all([claude.use('user'),claude.use('db')]);
@@ -475,7 +511,13 @@ async function submitScore(score,kos,cleared,left){
   save.runs.push(run);save.runs.sort((a,b)=>b.score-a.score);save.runs=save.runs.slice(0,10);
   if(score>save.rushBest)save.rushBest=score;
   persist();
-  if(!cleared||!DB||!UID)return;
+  if(!cleared)return;
+  if(SB){
+    try{await sbSubmit(score,kos,left);await sbFetchBoard();}
+    catch(e){toast("Could not reach the leaderboard. Score kept on this device.");}
+    return;
+  }
+  if(!DB||!UID)return;
   try{
     const ref=DB.doc('scores/'+UID),snap=await ref.get(),old=snap.exists?snap.data():null;
     if(!old||score>(old.best||0)){
@@ -540,7 +582,7 @@ function renderSelect(){
 /* ---------- sheets ---------- */
 let boardTab='global';
 function closeSheet(){sheetKind=null;$('sheetHost').innerHTML='';}
-function openSheet(kind){sheetKind=kind;renderSheet();}
+function openSheet(kind){sheetKind=kind;renderSheet();if(kind==='board'&&SB)sbFetchBoard();}
 function renderSheet(){
   const host=$('sheetHost');host.innerHTML='';
   const ov=el('div','overlay');ov.onclick=e=>{if(e.target===ov&&sheetKind!=='nick')closeSheet();};
@@ -567,12 +609,12 @@ function renderSheet(){
     if(boardTab==='global'){
       if(boardState==='live')sh.appendChild(el('p',null,"Only Rush runs that humble all 15 dignitaries make the Crew board."));
       if(boardState!=='live'){
-        sh.appendChild(el('p',null,"The shared crew board is only live for people opened in Claude with access to this game. Your device's best runs are in the My runs tab."));
+        sh.appendChild(el('p',null,SB?(boardState==='loading'?"Loading the leaderboard...":"Could not load the leaderboard right now. Check your connection and reopen this tab. Your device's best runs are in the My runs tab."):"The shared crew board is only live for people opened in Claude with access to this game. Your device's best runs are in the My runs tab."));
       }else if(!board.length){
         ul.appendChild(el('div','empty',"Nobody has cleared the summit yet. Be the first."));sh.appendChild(ul);
       }else{
         board.forEach((r,i)=>{
-          const li=el('li',r.id===UID?'me':'');
+          const li=el('li',(r.id===UID||(SB&&r.id===save.cid))?'me':'');
           li.appendChild(el('span','rk','#'+(i+1)));
           const nk=el('span','nk',r.nick||'Anonymous');nk.appendChild(el('span','ex',`Cleared with ${r.left||0}s left`));
           li.appendChild(nk);li.appendChild(el('span','sc',String(r.best||0)));ul.appendChild(li);
@@ -827,7 +869,7 @@ function endRush(cleared){
   const stats=[`Score ${final}`,`${kos}/${C.length} K.O.s`,`Combo x${maxCombo}`];
   if(cleared)stats.push(`${left}s left`);
   const text=cleared
-    ?(boardState==='live'?(pb?"New personal best! You are on the Crew board.":"Summit cleared. Your run counts for the Crew board."):"Summit cleared! The Crew board needs access through Claude, so this run is saved on this device.")
+    ?(boardState==='live'?(pb?"New personal best! You are on the Crew board.":"Summit cleared. Your run counts for the Crew board."):(SB?"Summit cleared! Could not reach the leaderboard, so this run is saved on this device.":"Summit cleared! The Crew board needs access through Claude, so this run is saved on this device."))
     :`${kos} of ${C.length} humbled. Clear all ${C.length} to land on the Crew board.`;
   showCard(cleared?"CLEARED!":"TIME!",text,stats,[post,copy,again,lb,menu]);
   persist();
